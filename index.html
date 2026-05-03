@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>EFINCO · Entrevista de Diagnóstico</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:       #0a0c0f;
+    --surface:  #111418;
+    --border:   #1e2329;
+    --gold:     #c9a84c;
+    --gold-dim: #7a5f28;
+    --text:     #e8e2d6;
+    --muted:    #5a5e66;
+    --danger:   #c0392b;
+    --ok:       #27ae60;
+    --rec:      #e74c3c;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Outfit', sans-serif;
+    font-weight: 300;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── HEADER ── */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 28px;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    z-index: 10;
+  }
+  .logo {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.4rem;
+    letter-spacing: 0.08em;
+    color: var(--gold);
+  }
+  .logo span { font-style: italic; color: var(--text); font-size: 0.85rem; margin-left: 10px; opacity: 0.5; font-family: 'Outfit', sans-serif; font-weight: 300; }
+  .status-pill {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    padding: 5px 12px;
+    border-radius: 20px;
+  }
+  .dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--muted);
+    transition: background 0.3s;
+  }
+  .dot.active { background: var(--rec); box-shadow: 0 0 8px var(--rec); animation: pulse 1.2s infinite; }
+  .dot.done   { background: var(--ok); box-shadow: 0 0 8px var(--ok); animation: none; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  /* ── MAIN ── */
+  main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    max-width: 780px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 0 20px 40px;
+  }
+
+  /* ── DEVICE SELECTOR ── */
+  .device-section {
+    padding: 24px 0 0;
+  }
+  label.field-label {
+    display: block;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    color: var(--gold-dim);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  select {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.9rem;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%235a5e66' d='M6 8L0 0h12z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 16px center;
+    cursor: pointer;
+  }
+  select:focus { outline: none; border-color: var(--gold-dim); }
+
+  /* ── CONTROLS ── */
+  .controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    padding: 36px 0 28px;
+  }
+  .timer {
+    font-family: 'DM Mono', monospace;
+    font-size: 3rem;
+    font-weight: 300;
+    letter-spacing: 0.12em;
+    color: var(--text);
+    opacity: 0.3;
+    transition: opacity 0.3s;
+  }
+  .timer.active { opacity: 1; color: var(--gold); }
+
+  .btn-record {
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    background: var(--surface);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    position: relative;
+  }
+  .btn-record:hover { border-color: var(--gold-dim); }
+  .btn-record .inner {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: var(--gold);
+    transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
+  }
+  .btn-record.recording .inner {
+    width: 26px; height: 26px;
+    border-radius: 6px;
+    background: var(--rec);
+  }
+  .btn-record.recording { border-color: var(--rec); }
+
+  .btn-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+  /* ── TRANSCRIPTION ── */
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .transcript-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    min-height: 220px;
+    max-height: 340px;
+    overflow-y: auto;
+    padding: 18px 20px;
+    font-size: 0.95rem;
+    line-height: 1.75;
+    color: var(--text);
+    scroll-behavior: smooth;
+  }
+  .transcript-box .placeholder {
+    color: var(--muted);
+    font-style: italic;
+    font-size: 0.85rem;
+  }
+  .interim { color: var(--muted); font-style: italic; }
+  .final-text { color: var(--text); }
+
+  /* word-count */
+  .word-count {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--muted);
+  }
+
+  /* ── DIVIDER ── */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 28px 0;
+  }
+
+  /* ── SUMMARY ── */
+
+  .btn-primary {
+    width: 100%;
+    padding: 14px;
+    background: var(--gold);
+    color: #0a0c0f;
+    border: none;
+    border-radius: 8px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .btn-primary:hover { opacity: 0.88; }
+  .btn-primary:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  .btn-secondary {
+    padding: 9px 18px;
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+  }
+  .btn-secondary:hover { color: var(--text); border-color: var(--muted); }
+
+  .summary-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 22px 22px;
+    margin-top: 16px;
+    font-size: 0.9rem;
+    line-height: 1.8;
+    white-space: pre-wrap;
+    display: none;
+  }
+
+
+  .loading-dots {
+    display: none;
+    align-items: center;
+    gap: 6px;
+    padding: 16px 0;
+    justify-content: center;
+  }
+  .loading-dots.visible { display: flex; }
+  .loading-dots span {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--gold);
+    animation: bounce 1.2s infinite;
+  }
+  .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes bounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-8px)} }
+
+  /* ── COPY ACTIONS ── */
+  .actions-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 14px;
+    flex-wrap: wrap;
+  }
+
+  /* ── NOTICE ── */
+  .notice {
+    background: #1a1200;
+    border: 1px solid var(--gold-dim);
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 0.8rem;
+    color: var(--gold-dim);
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    margin-top: 16px;
+  }
+  .notice-icon { flex-shrink: 0; font-size: 1rem; margin-top: 1px; }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">EFINCO <span>/ Diagnóstico de Cliente</span></div>
+  <div class="status-pill">
+    <div class="dot" id="statusDot"></div>
+    <span id="statusText">Listo</span>
+  </div>
+</header>
+
+<main>
+
+  <!-- DEVICE -->
+  <div class="device-section">
+    <label class="field-label">Dispositivo de audio</label>
+    <select id="micSelect"><option value="">Cargando micrófonos…</option></select>
+  </div>
+
+  <!-- CONTROLS -->
+  <div class="controls">
+    <div class="timer" id="timer">00:00:00</div>
+    <button class="btn-record" id="recordBtn" onclick="toggleRecording()">
+      <div class="inner"></div>
+    </button>
+    <span class="btn-label" id="recordLabel">Iniciar sesión</span>
+  </div>
+
+  <!-- TRANSCRIPTION -->
+  <div class="section-header">
+    <label class="field-label" style="margin:0">Transcripción en vivo</label>
+    <span class="word-count" id="wordCount">0 palabras</span>
+  </div>
+  <div class="transcript-box" id="transcriptBox">
+    <span class="placeholder">La transcripción aparecerá aquí cuando inicies la sesión…</span>
+  </div>
+
+  <div class="notice">
+    <span class="notice-icon">🎙</span>
+    <span>Conecta el receptor DJI vía USB-C antes de iniciar. Si no aparece en la lista, selecciona "Micrófono predeterminado" y el iPad usará el DJI automáticamente al estar conectado.</span>
+  </div>
+
+  <!-- SUMMARY -->
+  <div class="divider" id="divider" style="display:none"></div>
+
+  <div id="summarySection" style="display:none">
+    <label class="field-label">Resumen ejecutivo con IA</label>
+    <button class="btn-primary" id="summaryBtn" onclick="generateSummary()">
+      ✦ Generar resumen de la sesión
+    </button>
+    <div class="loading-dots" id="loadingDots">
+      <span></span><span></span><span></span>
+    </div>
+    <div class="summary-box" id="summaryBox" style="display:none"></div>
+    <div class="actions-row" id="actionsRow" style="display:none">
+      <button class="btn-secondary" onclick="copyTranscript()">Copiar transcripción</button>
+      <button class="btn-secondary" onclick="copySummary()">Copiar resumen</button>
+      <button class="btn-secondary" onclick="copyAll()">Copiar todo</button>
+      <button class="btn-secondary" onclick="resetSession()">Nueva sesión</button>
+    </div>
+  </div>
+
+</main>
+
+<script>
+// ── STATE ──
+let isRecording = false;
+let recognition = null;
+let timerInterval = null;
+let startTime = null;
+let finalTranscript = '';
+let interimTranscript = '';
+let wordCountVal = 0;
+
+// ── INIT: enumerate microphones ──
+async function initMics() {
+  try {
+    await navigator.mediaDevices.getUserMedia({ audio: true });
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const mics = devices.filter(d => d.kind === 'audioinput');
+    const sel = document.getElementById('micSelect');
+    sel.innerHTML = '';
+    if (mics.length === 0) {
+      sel.innerHTML = '<option>No se encontraron micrófonos</option>';
+      return;
+    }
+    mics.forEach((mic, i) => {
+      const opt = document.createElement('option');
+      opt.value = mic.deviceId;
+      opt.textContent = mic.label || `Micrófono ${i + 1}`;
+      // Auto-select DJI if found
+      if (mic.label && mic.label.toLowerCase().includes('dji')) opt.selected = true;
+      sel.appendChild(opt);
+    });
+  } catch (e) {
+    document.getElementById('micSelect').innerHTML =
+      '<option value="">Permiso de micrófono requerido</option>';
+  }
+}
+
+// ── TIMER ──
+function formatTime(ms) {
+  const s = Math.floor(ms / 1000);
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const sec = s % 60;
+  return [h, m, sec].map(v => String(v).padStart(2, '0')).join(':');
+}
+
+function startTimer() {
+  startTime = Date.now();
+  const el = document.getElementById('timer');
+  el.classList.add('active');
+  timerInterval = setInterval(() => {
+    el.textContent = formatTime(Date.now() - startTime);
+  }, 500);
+}
+
+function stopTimer() {
+  clearInterval(timerInterval);
+  document.getElementById('timer').classList.remove('active');
+}
+
+// ── TRANSCRIPT RENDER ──
+function renderTranscript() {
+  const box = document.getElementById('transcriptBox');
+  const words = (finalTranscript + ' ' + interimTranscript).trim().split(/\s+/).filter(Boolean);
+  wordCountVal = finalTranscript.trim().split(/\s+/).filter(Boolean).length;
+  document.getElementById('wordCount').textContent = `${wordCountVal} palabras`;
+
+  if (!finalTranscript && !interimTranscript) {
+    box.innerHTML = '<span class="placeholder">La transcripción aparecerá aquí cuando inicies la sesión…</span>';
+    return;
+  }
+  box.innerHTML =
+    (finalTranscript ? `<span class="final-text">${finalTranscript}</span> ` : '') +
+    (interimTranscript ? `<span class="interim">${interimTranscript}</span>` : '');
+  box.scrollTop = box.scrollHeight;
+}
+
+// ── SPEECH RECOGNITION ──
+function startRecognition() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    alert('Tu navegador no soporta transcripción en vivo. Usa Safari en iOS 15+.');
+    return;
+  }
+
+  recognition = new SpeechRecognition();
+  recognition.lang = 'es-MX';
+  recognition.continuous = true;
+  recognition.interimResults = true;
+  recognition.maxAlternatives = 1;
+
+  recognition.onresult = (e) => {
+    interimTranscript = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      const t = e.results[i][0].transcript;
+      if (e.results[i].isFinal) {
+        finalTranscript += t + ' ';
+      } else {
+        interimTranscript += t;
+      }
+    }
+    renderTranscript();
+  };
+
+  // Auto-restart on iOS (recognition stops after silence)
+  recognition.onend = () => {
+    if (isRecording) setTimeout(() => recognition && recognition.start(), 200);
+  };
+
+  recognition.onerror = (e) => {
+    if (e.error === 'no-speech') return; // normal, just restart
+    console.warn('Speech error:', e.error);
+  };
+
+  recognition.start();
+}
+
+// ── TOGGLE RECORDING ──
+async function toggleRecording() {
+  if (!isRecording) {
+    // START
+    isRecording = true;
+    finalTranscript = '';
+    interimTranscript = '';
+    renderTranscript();
+
+    document.getElementById('recordBtn').classList.add('recording');
+    document.getElementById('recordLabel').textContent = 'Detener sesión';
+    document.getElementById('statusDot').className = 'dot active';
+    document.getElementById('statusText').textContent = 'Grabando';
+    document.getElementById('divider').style.display = 'none';
+    document.getElementById('summarySection').style.display = 'none';
+    document.getElementById('summaryBox').style.display = 'none';
+
+    startTimer();
+    startRecognition();
+  } else {
+    // STOP
+    isRecording = false;
+    if (recognition) { recognition.stop(); recognition = null; }
+    stopTimer();
+
+    // iOS fix: interim transcript may never become "final" — rescue it
+    if (interimTranscript.trim()) {
+      finalTranscript += interimTranscript + ' ';
+      interimTranscript = '';
+    }
+    renderTranscript();
+
+    document.getElementById('recordBtn').classList.remove('recording');
+    document.getElementById('recordLabel').textContent = 'Iniciar sesión';
+    document.getElementById('statusDot').className = 'dot done';
+    document.getElementById('statusText').textContent = 'Sesión completada';
+
+    // Always show summary section after stopping (iOS-safe inline style)
+    document.getElementById('divider').style.display = 'block';
+    document.getElementById('summarySection').style.display = 'block';
+    document.getElementById('summaryBox').style.display = 'none';
+    document.getElementById('summaryBox').textContent = '';
+    document.getElementById('actionsRow').style.display = 'none';
+
+    // Disable summary btn if nothing was captured
+    const hasContent = finalTranscript.trim().length > 0;
+    document.getElementById('summaryBtn').disabled = !hasContent;
+    document.getElementById('summaryBtn').textContent = hasContent
+      ? '✦ Generar resumen de la sesión'
+      : '✦ Sin transcripción — intenta de nuevo';
+  }
+}
+
+// ── GENERATE SUMMARY ──
+async function generateSummary() {
+  if (!finalTranscript.trim()) return;
+
+  const btn = document.getElementById('summaryBtn');
+  const loading = document.getElementById('loadingDots');
+  const box = document.getElementById('summaryBox');
+
+  btn.disabled = true;
+  loading.classList.add('visible');
+  box.classList.remove('visible');
+
+  const prompt = `Eres un consultor senior de Business Intelligence. Acabas de transcribir una entrevista de diagnóstico inicial con la dueña de un negocio (cliente potencial de EFINCO, firma de consultoría).
+
+Analiza la transcripción y genera un resumen ejecutivo estructurado con las siguientes secciones:
+
+1. 🏢 PERFIL DEL NEGOCIO — tipo de empresa, industria, tamaño aproximado
+2. 🔍 DOLORES PRINCIPALES — problemas y retos mencionados
+3. 🎯 OPORTUNIDADES DETECTADAS — áreas donde EFINCO puede agregar valor
+4. 📊 INDICADORES CLAVE MENCIONADOS — métricas, números, fechas relevantes
+5. ✅ PRÓXIMOS PASOS SUGERIDOS — acciones recomendadas para el equipo EFINCO
+6. ⚡ NIVEL DE URGENCIA — Alto / Medio / Bajo con justificación breve
+
+Sé concreto, profesional y orientado a la acción. Si la transcripción es incompleta o tiene errores de reconocimiento de voz, infiere el contexto razonablemente.
+
+TRANSCRIPCIÓN:
+${finalTranscript}`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    const data = await res.json();
+    const text = data.content?.map(b => b.text || '').join('') || 'No se pudo generar el resumen.';
+
+    box.textContent = text;
+    box.style.display = 'block';
+    document.getElementById('actionsRow').style.display = 'flex';
+  } catch (e) {
+    box.textContent = '⚠️ Error al conectar con la IA. Verifica tu conexión e intenta de nuevo.';
+    box.style.display = 'block';
+  } finally {
+    loading.classList.remove('visible');
+    btn.disabled = false;
+  }
+}
+
+// ── COPY HELPERS ──
+function copyText(text, label) {
+  navigator.clipboard.writeText(text).then(() => {
+    const orig = event.target.textContent;
+    event.target.textContent = '✓ Copiado';
+    setTimeout(() => event.target.textContent = orig, 1800);
+  });
+}
+function copyTranscript() { copyText(finalTranscript.trim()); }
+function copySummary()    { copyText(document.getElementById('summaryBox').textContent); }
+function copyAll() {
+  const all = `TRANSCRIPCIÓN — DIAGNÓSTICO EFINCO\n${'─'.repeat(40)}\n${finalTranscript.trim()}\n\n${'─'.repeat(40)}\nRESUMEN EJECUTIVO\n${'─'.repeat(40)}\n${document.getElementById('summaryBox').textContent}`;
+  copyText(all);
+}
+
+// ── RESET ──
+function resetSession() {
+  isRecording = false;
+  finalTranscript = '';
+  interimTranscript = '';
+  document.getElementById('timer').textContent = '00:00:00';
+  document.getElementById('timer').classList.remove('active');
+  document.getElementById('statusDot').className = 'dot';
+  document.getElementById('statusText').textContent = 'Listo';
+  document.getElementById('recordBtn').classList.remove('recording');
+  document.getElementById('recordLabel').textContent = 'Iniciar sesión';
+  document.getElementById('summarySection').classList.remove('visible');
+  renderTranscript();
+}
+
+// ── BOOT ──
+initMics();
+</script>
+</body>
+</html>
